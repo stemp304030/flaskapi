@@ -3,23 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flask API Web View</title>
+    <title>Search Data</title>
     <script>
-        async function fetchTasks() {
-            const response = await fetch('/api/tasks');
-            const tasks = await response.json();
-            let output = '<ul>';
-            tasks.forEach(task => {
-                output += `<li>${task.task} - ${task.status}</li>`;
-            });
-            output += '</ul>';
-            document.getElementById('task-list').innerHTML = output;
+        let storedData = [];  // Store data globally
+
+        async function fetchData() {
+            const response = await fetch('/api/data');
+            storedData = await response.json(); // Store the full dataset
         }
-        window.onload = fetchTasks;
+
+        function searchData() {
+            const searchQuery = document.getElementById("search").value.trim().toLowerCase();
+            const resultsContainer = document.getElementById("data-list");
+
+            if (searchQuery === "") {
+                resultsContainer.innerHTML = ""; // Clear the results if input is empty
+                return;
+            }
+
+            const filteredData = storedData.filter(item => item.name.toLowerCase().includes(searchQuery));
+            displayData(filteredData);
+        }
+
+        function displayData(data) {
+            let output = "";
+            if (data.length === 0) {
+                output = "<p>No results found</p>";
+            } else {
+                output = "<ul>";
+                data.forEach(item => {
+                    output += `<li><b>ID:</b> ${item.id} | <b>Name:</b> ${item.name} | <b>Birthdate:</b> ${item.birthdate} | <b>Gender:</b> ${item.gender} | <b>Category:</b> ${item.category}</li>`;
+                });
+                output += "</ul>";
+            }
+            document.getElementById("data-list").innerHTML = output;
+        }
+
+        window.onload = fetchData;
     </script>
 </head>
 <body>
-    <h1>Task List</h1>
-    <div id="task-list">Loading...</div>
+    <h1>Search Data</h1>
+
+    <a href="/add"><button>Add New Entry</button></a>
+    
+    <h2>Search</h2>
+    <input type="text" id="search" placeholder="Search by name" onkeyup="searchData()">
+
+    <h2>Results</h2>
+    <div id="data-list"></div> <!-- Initially empty, will be updated only when searching -->
 </body>
 </html>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Data</title>
+</head>
+<body>
+    <h1>Add Data</h1>
+
+    <form action="/api/add" method="POST">
+        <label>Name: <input type="text" name="name" required></label><br>
+        <label>Birthdate: <input type="date" name="birthdate" required></label><br>
+        <label>Gender: 
+            <select name="gender" required>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+            </select>
+        </label><br>
+        <label>Category of Work: <input type="text" name="category" required></label><br>
+        <button type="submit">Add Data</button>
+    </form>
+
+    <br>
+    <a href="/"><button>Go to Search Page</button></a>
+</body>
+</html>
