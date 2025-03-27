@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask API Web View</title>
+    <script>
+        async function fetchTasks() {
+            const response = await fetch('/api/tasks');
+            const tasks = await response.json();
+            let output = '<ul>';
+            tasks.forEach(task => {
+                output += `<li>${task.task} - ${task.status}</li>`;
+            });
+            output += '</ul>';
+            document.getElementById('task-list').innerHTML = output;
+        }
+        window.onload = fetchTasks;
+    </script>
+</head>
+<body>
+    <h1>Task List</h1>
+    <div id="task-list">Loading...</div>
+</body>
+</html>
