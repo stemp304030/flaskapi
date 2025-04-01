@@ -9,7 +9,7 @@
 
         async function fetchData() {
             const response = await fetch('/api/data');
-            storedData = await response.json(); // Store the full dataset
+            storedData = await response.json();
         }
 
         function searchData() {
@@ -17,7 +17,7 @@
             const resultsContainer = document.getElementById("data-list");
 
             if (searchQuery === "") {
-                resultsContainer.innerHTML = ""; // Clear the results if input is empty
+                resultsContainer.innerHTML = ""; // Clear results if input is empty
                 return;
             }
 
@@ -32,7 +32,13 @@
             } else {
                 output = "<ul>";
                 data.forEach(item => {
-                    output += `<li><b>ID:</b> ${item.id} | <b>Name:</b> ${item.name} | <b>Birthdate:</b> ${item.birthdate} | <b>Gender:</b> ${item.gender} | <b>Category:</b> ${item.category}</li>`;
+                    output += `
+                        <li>
+                            <img src="${item.image}" alt="Image" width="100"><br>
+                            <b>ID:</b> ${item.id} | <b>Name:</b> ${item.name} | <b>Birthdate:</b> ${item.birthdate} | 
+                            <b>Gender:</b> ${item.gender} | <b>Category:</b> ${item.category}
+                        </li>
+                    `;
                 });
                 output += "</ul>";
             }

@@ -5,5 +5,21 @@
         "birthdate": "2001-09-29",
         "gender": "Male",
         "category": "Developer"
+    },
+    {
+        "id": "3170f278",
+        "name": "Saurabh Bhatia",
+        "birthdate": "2025-04-01",
+        "gender": "Male",
+        "category": "Developer",
+        "image": "/static/images/3170f278_designing-networks-for-iot.png"
+    },
+    {
+        "id": "44c85d7d",
+        "name": "Rohit",
+        "birthdate": "2025-04-05",
+        "gender": "Male",
+        "category": "AI Developer",
+        "image": "/static/images/44c85d7d_sensors-23-08015-g001.png"
     }
 ]
