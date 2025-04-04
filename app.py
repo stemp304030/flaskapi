@@ -2,9 +2,12 @@ import os
 import json
 import uuid
 import smtplib
-from email.mime.text import MIMEText
 from flask import Flask, request, jsonify, render_template, redirect, url_for
 from werkzeug.utils import secure_filename
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
 
 app = Flask(__name__)
 
@@ -14,7 +17,7 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 
 SENDER_EMAIL = "stemp304030@gmail.com"
-EMAIL_PASSWORD = "gtib cbjo ieiu oqiy"  # Use Gmail App Password
+EMAIL_PASSWORD = "gtib cbjo ieiu oqiy"  # Replace with your Gmail App Password
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -74,7 +77,8 @@ def add_data():
         "birthdate": birthdate,
         "gender": gender,
         "category": category,
-        "image": image_url
+        "image": image_url,
+        "image_path": file_path
     }
     data.append(new_entry)
     save_data(data)
@@ -91,24 +95,44 @@ def send_email():
     if not entry:
         return "Data not found", 404
 
-    message_body = f"""
-    ID: {entry['id']}
-    Name: {entry['name']}
-    Birthdate: {entry['birthdate']}
-    Gender: {entry['gender']}
-    Category: {entry['category']}
-    """
-
-    msg = MIMEText(message_body)
-    msg["Subject"] = f"Details of {entry['name']}"
+    msg = MIMEMultipart()
     msg["From"] = SENDER_EMAIL
     msg["To"] = recipient_email
+    msg["Subject"] = f"Details of {entry['name']}"
+
+    body = f"""
+Hello,
+
+Here are the details of the person:
+
+ID: {entry['id']}
+Name: {entry['name']}
+Birthdate: {entry['birthdate']}
+Gender: {entry['gender']}
+Category: {entry['category']}
+
+Regards,
+Biometric App
+    """
+    msg.attach(MIMEText(body, "plain"))
+
+    image_path = entry.get("image_path", "")
+    if image_path and os.path.exists(image_path):
+        with open(image_path, "rb") as attachment:
+            part = MIMEBase("application", "octet-stream")
+            part.set_payload(attachment.read())
+            encoders.encode_base64(part)
+            part.add_header(
+                "Content-Disposition",
+                f"attachment; filename= {os.path.basename(image_path)}",
+            )
+            msg.attach(part)
 
     try:
         with smtplib.SMTP("smtp.gmail.com", 587) as server:
             server.starttls()
             server.login(SENDER_EMAIL, EMAIL_PASSWORD)
-            server.send_message(msg)
+            server.sendmail(SENDER_EMAIL, recipient_email, msg.as_string())
         return redirect(url_for("index"))
     except Exception as e:
         return f"Failed to send email: {e}", 500
