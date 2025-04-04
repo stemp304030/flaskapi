@@ -1,62 +1,73 @@
+<!-- inside index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search Data</title>
-    <script>
-        let storedData = [];  // Store data globally
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Search Data</title>
+  <script>
+    let storedData = [];
 
-        async function fetchData() {
-            const response = await fetch('/api/data');
-            storedData = await response.json();
-        }
+    async function fetchData() {
+      const response = await fetch("/api/data");
+      storedData = await response.json();
+    }
 
-        function searchData() {
-            const searchQuery = document.getElementById("search").value.trim().toLowerCase();
-            const resultsContainer = document.getElementById("data-list");
+    function searchData() {
+      const searchQuery = document.getElementById("search").value.trim().toLowerCase();
+      const resultsContainer = document.getElementById("data-list");
 
-            if (searchQuery === "") {
-                resultsContainer.innerHTML = ""; // Clear results if input is empty
-                return;
-            }
+      if (searchQuery === "") {
+        resultsContainer.innerHTML = "";
+        return;
+      }
 
-            const filteredData = storedData.filter(item => item.name.toLowerCase().includes(searchQuery));
-            displayData(filteredData);
-        }
+      const filteredData = storedData.filter(item =>
+        item.name.toLowerCase().includes(searchQuery)
+      );
+      displayData(filteredData);
+    }
 
-        function displayData(data) {
-            let output = "";
-            if (data.length === 0) {
-                output = "<p>No results found</p>";
-            } else {
-                output = "<ul>";
-                data.forEach(item => {
-                    output += `
-                        <li>
-                            <img src="${item.image}" alt="Image" width="100"><br>
-                            <b>ID:</b> ${item.id} | <b>Name:</b> ${item.name} | <b>Birthdate:</b> ${item.birthdate} | 
-                            <b>Gender:</b> ${item.gender} | <b>Category:</b> ${item.category}
-                        </li>
-                    `;
-                });
-                output += "</ul>";
-            }
-            document.getElementById("data-list").innerHTML = output;
-        }
+    function displayData(data) {
+      let output = "";
+      if (data.length === 0) {
+        output = "<p>No results found</p>";
+      } else {
+        output = "<ul>";
+        data.forEach(item => {
+          output += `
+            <li>
+              <img src="${item.image}" alt="Image" width="100"><br>
+              <b>ID:</b> ${item.id} |
+              <b>Name:</b> ${item.name} |
+              <b>Birthdate:</b> ${item.birthdate} |
+              <b>Gender:</b> ${item.gender} |
+              <b>Category:</b> ${item.category}
+              <form action="/send_email" method="POST" style="margin-top: 10px;">
+                <input type="hidden" name="id" value="${item.id}">
+                <input type="email" name="recipient" placeholder="Enter receiver email" required>
+                <button type="submit">Send Email</button>
+              </form>
+            </li><br>
+          `;
+        });
+        output += "</ul>";
+      }
+      document.getElementById("data-list").innerHTML = output;
+    }
 
-        window.onload = fetchData;
-    </script>
+    window.onload = fetchData;
+  </script>
 </head>
 <body>
-    <h1>Search Data</h1>
+  <h1>Search Data</h1>
 
-    <a href="/add"><button>Add New Entry</button></a>
-    
-    <h2>Search</h2>
-    <input type="text" id="search" placeholder="Search by name" onkeyup="searchData()">
+  <a href="/add"><button>Add New Entry</button></a>
 
-    <h2>Results</h2>
-    <div id="data-list"></div> <!-- Initially empty, will be updated only when searching -->
+  <h2>Search</h2>
+  <input type="text" id="search" placeholder="Search by name" onkeyup="searchData()">
+
+  <h2>Results</h2>
+  <div id="data-list"></div>
 </body>
 </html>

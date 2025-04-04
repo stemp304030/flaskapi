@@ -1,6 +1,8 @@
 import os
 import json
 import uuid
+import smtplib
+from email.mime.text import MIMEText
 from flask import Flask, request, jsonify, render_template, redirect, url_for
 from werkzeug.utils import secure_filename
 
@@ -8,54 +10,45 @@ app = Flask(__name__)
 
 DATA_FILE = "data.json"
 UPLOAD_FOLDER = "static/images"
-
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # Limit file size to 2MB
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 
-# Ensure the upload folder exists
+SENDER_EMAIL = "stemp304030@gmail.com"
+EMAIL_PASSWORD = "gtib cbjo ieiu oqiy"  # Use Gmail App Password
+
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Load existing data or create an empty list
 if not os.path.exists(DATA_FILE):
     with open(DATA_FILE, "w") as f:
         json.dump([], f)
 
-# Function to read data from JSON file
 def load_data():
     with open(DATA_FILE, "r") as f:
         return json.load(f)
 
-# Function to write data to JSON file
 def save_data(data):
     with open(DATA_FILE, "w") as f:
         json.dump(data, f, indent=4)
 
-# Check allowed file extensions
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# Home Page (Search & View Data)
 @app.route("/")
 def index():
     return render_template("index.html")
 
-# Add Data Page (Form)
 @app.route("/add")
 def add_page():
     return render_template("add.html")
 
-# API to get stored data
 @app.route("/api/data", methods=["GET"])
 def get_data():
     return jsonify(load_data())
 
-# API to add new data (with image upload)
 @app.route("/api/add", methods=["POST"])
 def add_data():
     data = load_data()
-    
-    # Get form data
+
     name = request.form.get("name")
     birthdate = request.form.get("birthdate")
     gender = request.form.get("gender")
@@ -63,12 +56,10 @@ def add_data():
     file = request.files.get("image")
 
     if not name or not birthdate or not gender or not category or not file:
-        return jsonify({"error": "All fields are required, including an image"}), 400
+        return jsonify({"error": "All fields are required"}), 400
 
-    # Generate a unique ID
     user_id = str(uuid.uuid4())[:8]
 
-    # Process Image Upload
     if file and allowed_file(file.filename):
         filename = secure_filename(f"{user_id}_{file.filename}")
         file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
@@ -77,7 +68,6 @@ def add_data():
     else:
         return jsonify({"error": "Invalid image format"}), 400
 
-    # Add new entry
     new_entry = {
         "id": user_id,
         "name": name,
@@ -87,10 +77,42 @@ def add_data():
         "image": image_url
     }
     data.append(new_entry)
-    
-    save_data(data)  # Save to JSON file
-    return redirect(url_for("index"))  # Redirect to home page
+    save_data(data)
+
+    return redirect(url_for("index"))
+
+@app.route("/send_email", methods=["POST"])
+def send_email():
+    data = load_data()
+    entry_id = request.form.get("id")
+    recipient_email = request.form.get("recipient")
+
+    entry = next((item for item in data if item["id"] == entry_id), None)
+    if not entry:
+        return "Data not found", 404
+
+    message_body = f"""
+    ID: {entry['id']}
+    Name: {entry['name']}
+    Birthdate: {entry['birthdate']}
+    Gender: {entry['gender']}
+    Category: {entry['category']}
+    """
+
+    msg = MIMEText(message_body)
+    msg["Subject"] = f"Details of {entry['name']}"
+    msg["From"] = SENDER_EMAIL
+    msg["To"] = recipient_email
+
+    try:
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.starttls()
+            server.login(SENDER_EMAIL, EMAIL_PASSWORD)
+            server.send_message(msg)
+        return redirect(url_for("index"))
+    except Exception as e:
+        return f"Failed to send email: {e}", 500
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))  
+    port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port, debug=True)
